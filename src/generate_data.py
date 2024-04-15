@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from generate_graph import generate_graph
 import networkx as nx
 import numpy as np
