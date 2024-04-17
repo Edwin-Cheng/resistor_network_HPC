@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 from sklearn.model_selection import train_test_split
-from torch.utils.data import TensorDataset, DataLoader
-import torch
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
@@ -11,6 +9,8 @@ import numpy as np
 import pandas as pd
 import random
 import time
+import torch
+from torch.utils.data import TensorDataset, DataLoader
 
 # Seed setup and early stopping classes remain the same...
 def setup_seed(seed):
@@ -220,9 +220,7 @@ class Pipeline:
     
 
 from generate_data import setup_training_data
-def run_experiment(L=10, network_type = "square",  high_V = 0, low_V = -1, midpoint_list=None, name = str, exp_num = str, epochs=20000, patience=500):
-    config = str(L), str(high_V), str(low_V), str(midpoint_list), str(name)
-    setup_training_data(L, network_type, high_V, low_V, midpoint_list, name)
+def run_experiment(network_type = "square", name = str, exp_num = str, epochs=20000, patience=500):
     X_train, X_test, y_train, y_test, num_classes = Load_data(network_type, name)
     # (self, X_train, X_test, y_train, y_test, learning_rate, hidden_size, num_classes, epochs, patience)
     pipeline = Pipeline(X_train, X_test, y_train, y_test, 0.0015, [4,128,128], num_classes,  epochs, patience)     #structure of DNN
@@ -235,5 +233,4 @@ def run_experiment(L=10, network_type = "square",  high_V = 0, low_V = -1, midpo
     with open(f'model_info_{exp_num}.txt', 'w') as f:
         f.write(f'num_classes: {num_classes}\n')
         f.write(f'accuracy: {accuracy}\n')
-        f.write(f'config: {config}\n')
         f.write(f'')

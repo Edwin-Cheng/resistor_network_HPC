@@ -19,16 +19,16 @@
 # Choose partition (queue) 
 #SBATCH -p gpu-share
 
-# To use 2 cpu cores and 2 gpu devices in a node
-#SBATCH -N 1 -n 2 --gres=gpu:2
+# To use 1 cpu cores and 1 gpu devices in a node
+#SBATCH -N 1 -n 1 --gres=gpu:2
 
 # Setup runtime environment if necessary
-module load anaconda3
+module load cuda
+module load anaconda3/2021.05
 source activate my_env
 
 
 
 # Go to the job submission directory and run your application
 cd $HOME/apps/resistor_network_HPC/src
-ls
-srun ./main.py
+$HOME/.conda/envs/my_env/bin/python ./main.py

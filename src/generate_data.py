@@ -31,34 +31,12 @@ def default_input_edges(G, network_type):
         input_edges = np.random.choice(G.edges(), 4)
     return input_edges
 
-def generate_training_data(G, network_type, high_V, low_V, filename, num_samples=-1, num_inputs=4, ran=0, noise=0.1, midpoint_list=[(4, 4), (4, 5), (5, 5), (5, 4)], num_choices = 10):
+def generate_training_data(G, network_type, high_V, low_V, filename, num_samples=-1, num_inputs=4, ran=0, noise=0.1, midpoint_list=None, num_choices = 1):
     N = nx.number_of_nodes(G)
     nodes_list = list(G.nodes())
-    midpoints = []
-    for n in list(G[nodes_list[high_V]]):
-        midpoints.append(n)
-    for n in list(G[nodes_list[low_V]]):
-        midpoints.append(n)
-    L = int(np.sqrt(N)) # Assuming square grid
-    if network_type == 'square' or network_type == 'tri' or network_type == 'hex2':
-        midpoints = midpoint_list #[(4, 4), (4, 5), (5, 5), (5, 4)] #[(0, L//2), (L//2, 0), (L-1, L//2), (L//2, L-1)]
-
-    if network_type == 'hex':
-        midpoints = [(0, 12), (7, 12), (0, 4), (7, 4)]
-    if network_type == 'ring':
-        m = int(num_inputs+2)
-        midpoints = np.append(np.arange(1,m/2),np.arange(m/2+1,m))
-        midpoints = N/m*midpoints
-
-    if network_type == 'per_att':
-        degrees = G.degree
-        hubs = sorted(degrees, key=lambda x: x[1], reverse=True)
-        hubs = [n for n, k in hubs]
-        hubs.remove(0)
-        hubs.remove(1)
-    if network_type == 'ER' or network_type == 'uni_con':
-        midpoints = np.random.choice(G.nodes(), num_inputs)
-
+    if midpoint_list is None:
+        midpoint_list = default_input_nodes(G, network_type)
+    midpoints = midpoint_list
     print(midpoints)
     for i in range(ran):
         nx.double_edge_swap(G)
@@ -74,24 +52,15 @@ def generate_training_data(G, network_type, high_V, low_V, filename, num_samples
                 print('0.25 complete')
             # Randomly disconnect an edge
             #edge_to_remove = random.choice(edges)
-            #edge_to_remove = [edges[i]]
-            edge_to_remove = [edges[i] for i in np.random.choice(num_samples,num_choices)]
+            edge_to_remove = [edges[i]]
+            #edge_to_remove = [edges[i] for i in np.random.choice(num_samples,num_choices)]
             # Calculate voltage changes
             dV = get_dV(G, V_original, edge_to_remove, high_V, low_V)
             # Prepare inputs: dV for each midpoint
             inputs = []
-            if network_type == 'square':
-                for x, y in midpoints:
-                    node_index = x * L + y # Assuming nodes are numbered row-wise from 0 to N-1
-                    inputs.append(dV[node_index])
-            elif network_type == 'per_att':
-                for i in range(num_inputs):
-                    node_index = hubs[i]
-                    inputs.append(dV[node_index])
-            else:
-                for n in midpoints:
-                    node_index = nodes_list.index(n)
-                    inputs.append(dV[node_index])
+            for n in midpoints:
+                node_index = nodes_list.index(n)
+                inputs.append(dV[node_index])
             # Prepare output: index of disconnected edge
             output = []
             for i, edge in enumerate(edge_to_remove):
@@ -106,9 +75,6 @@ def setup_training_data(L=10, network_type = 'square', high_V = 0, low_V = -1, m
 
     G = generate_graph(network_type, L)
     nodes_list = list(G.nodes())
-    
-    if midpoint_list is None:
-        midpoint_list = default_input_nodes(G, network_type)
 
     #print(G)
     if not os.path.exists(f'training_data_{network_type}_{name}.txt'):

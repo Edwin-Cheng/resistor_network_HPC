@@ -39,6 +39,8 @@ def generate_graph(network_type,L = 10,m = 4,N = 100, p=0.01, k=5, ring_links=[1
         G.remove_edges_from(nx.selfloop_edges(G))
     elif network_type == 'ring':
         G = nx.circulant_graph(N, ring_links)
+        for n in range(nx.number_of_nodes(G)):
+            if p>np.random.rand(): G.add_edge(n,int((n+m)%N))
     elif network_type == 'cube':
         G = nx.grid_graph((L,L,L), periodic= periodic)
     return G
